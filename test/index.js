@@ -20,8 +20,8 @@ test("can do stuff", function (assert) {
 
     var html = String(div)
 
-    assert.equal(html, "<div class=\"foo bar\">\n" +
-        "<span>\nHello!\n</span>\n</div>")
+    assert.equal(html, "<DIV class=\"foo bar\">" +
+        "<SPAN>Hello!</SPAN></DIV>")
 
     assert.end()
 })
@@ -35,50 +35,70 @@ test("can createDocumentFragment", function (assert) {
 
 
     frag.appendChild(h1)
-    assert.equal(String(frag), "<h1>\n</h1>")
+    assert.equal(String(frag), "<H1></H1>")
 
     frag.appendChild(h2)
-    assert.equal(String(frag), "<h1>\n</h1><h2>\n</h2>")
+    assert.equal(String(frag), "<H1></H1><H2></H2>")
 
     frag.removeChild(h1)
-    assert.equal(String(frag), "<h2>\n</h2>")
+    assert.equal(String(frag), "<H2></H2>")
 
     frag.replaceChild(h1, h2)
-    assert.equal(String(frag), "<h1>\n</h1>")
+    assert.equal(String(frag), "<H1></H1>")
 
     assert.end()
 })
 
 
-test("can getElementById", function (assert) {
+test("getElementById, getElementsByTagName, querySelector", function (assert) {
 
-    function append_div(id, parent) {
-        var div = document.createElement("div")
-        div.id = id
-        parent.appendChild(div)
-        return div
+    function append_el(id, parent, tag) {
+        var el = document.createElement(tag || "div")
+        el.id = id
+        parent.appendChild(el)
+        return el
     }
 
-    var div1   = append_div(1, document.body)
-    var div2   = append_div(2, document.body)
-    var div3   = append_div(3, document.body)
+    var el1   = append_el(1, document.body)
+    var el2   = append_el(2, document.body)
+    var el3   = append_el(3, document.body)
 
-    var div11  = append_div(11, div1)
-    var div12  = append_div(12, div1)
-    var div21  = append_div(21, div2)
-    var div22  = append_div(22, div2)
-    var div221 = append_div(221, div22)
-    var div222 = append_div(222, div22)
+    var el11  = append_el(11,  el1)
+    var el12  = append_el(12,  el1)
+    var el21  = append_el(21,  el2)
+    var el22  = append_el(22,  el2)
+    var el221 = append_el(221, el22, "span")
+    var el222 = append_el(222, el22)
 
-    assert.equal(document.getElementById(1),    div1)
-    assert.equal(document.getElementById("2"),  div2)
-    assert.equal(document.getElementById(3),    div3)
-    assert.equal(document.getElementById(11),   div11)
-    assert.equal(document.getElementById(12),   div12)
-    assert.equal(document.getElementById(21),   div21)
-    assert.equal(document.getElementById(22),   div22)
-    assert.equal(document.getElementById(221),  div221)
-    assert.equal(document.getElementById(222),  div222)
+	el21.className = "findme"
+	el222.setAttribute("type", "text/css")
+
+    assert.equal(document.getElementById(1),    el1)
+    assert.equal(document.getElementById("2"),  el2)
+    assert.equal(document.getElementById(3),    el3)
+    assert.equal(document.getElementById(11),   el11)
+    assert.equal(document.getElementById(12),   el12)
+    assert.equal(document.getElementById(21),   el21)
+    assert.equal(document.getElementById(22),   el22)
+    assert.equal(document.getElementById(221),  el221)
+    assert.equal(document.getElementById(222),  el222)
+    
+	assert.equal(document.getElementsByTagName("div").length,  8)
+	assert.equal(document.getElementsByTagName("span").length,  1)
+	
+	assert.equal(document.querySelector("span"),      el221)
+	assert.equal(document.querySelector("#22"),       el22)
+	assert.equal(document.querySelector("div#22"),    el22)
+	assert.equal(document.querySelector("span#22"),   null)
+
+	assert.equal(document.querySelector(".findme"),         el21)
+	assert.equal(document.querySelector(".not_found"),      null)
+	assert.equal(document.querySelector("div.findme"),      el21)
+	assert.equal(document.querySelector("div.not_found"),   null)
+	assert.equal(document.querySelector("span.findme"),     null)
+	assert.equal(document.querySelector("span.not_found"),  null)
+	assert.equal(document.querySelector("#21.findme"),      el21)
+	assert.equal(document.querySelector("div#21.findme"),   el21)
 
     assert.end()
 })
