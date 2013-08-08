@@ -194,7 +194,7 @@ extend(HTMLElement, Node, {
         }
 
         var style = Object.keys(t.style).reduce(function (str, key) {
-            return str + key + ":" + t.styles[key] + ";"
+            return str + key + ":" + t.style[key] + ";"
         }, "")
         if (style) attrs.push('style="' + style + '"')
 
