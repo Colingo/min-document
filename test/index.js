@@ -27,24 +27,51 @@ test("can do stuff", function (assert) {
 })
 
 
-test("can createDocumentFragment", function (assert) {
-    var frag = document.createDocumentFragment()
-
+function testNode(assert, mask, node) {
     var h1 = document.createElement("h1")
     var h2 = document.createElement("h2")
 
+    assert.equal(node.appendChild(h2), h2)
+    assert.equal(""+node, mask.replace("%s", "<H2></H2>"))
+    
+    assert.equal(node.insertBefore(h1, h2), h1)
+    assert.equal(""+node, mask.replace("%s", "<H1></H1><H2></H2>"))
 
-    frag.appendChild(h1)
-    assert.equal(String(frag), "<H1></H1>")
+    assert.equal(node.appendChild(h1), h1)
+    assert.equal(""+node, mask.replace("%s", "<H2></H2><H1></H1>"))
 
-    frag.appendChild(h2)
-    assert.equal(String(frag), "<H1></H1><H2></H2>")
+    assert.equal(node.removeChild(h1), h1)
+    assert.equal(""+node, mask.replace("%s", "<H2></H2>"))
 
-    frag.removeChild(h1)
-    assert.equal(String(frag), "<H2></H2>")
+    assert.equal(node.replaceChild(h1, h2), h2)
+    assert.equal(""+node, mask.replace("%s", "<H1></H1>"))
+}
 
-    frag.replaceChild(h1, h2)
-    assert.equal(String(frag), "<H1></H1>")
+test("Element", function (assert) {
+    testNode(assert, "<BODY>%s</BODY>", document.body)
+
+    assert.end()
+})
+
+test("Element.attributes", function (assert) {
+    var h1 = document.createElement("h1")
+    h1.id = 123
+    assert.equal(""+h1, '<H1 id="123"></H1>')
+
+    h1.className = "my-class"
+    assert.equal(""+h1, '<H1 id="123" class="my-class"></H1>')
+
+    h1.style.top = "5px"
+    h1.style.left = "15px"
+    assert.equal(""+h1, '<H1 id="123" class="my-class" style="top:5px;left:15px;"></H1>')
+
+    assert.end()
+})
+
+test("documentFragment", function (assert) {
+    var frag = document.createDocumentFragment()
+
+    testNode(assert, "%s", frag)
 
     assert.end()
 })
@@ -70,8 +97,10 @@ test("getElementById, getElementsByTagName, querySelector", function (assert) {
     var el222 = append_el(222, el22)
     var el3   = append_el(3, document.body)
 
-	el21.className = "findme"
-	el222.setAttribute("type", "text/css")
+    el21.className = "findme"
+    el222.setAttribute("type", "text/css")
+
+    assert.equal(document.body.appendChild(el3), el3)
 
     assert.equal(document.getElementById(1),    el1)
     assert.equal(document.getElementById("2"),  el2)
@@ -83,22 +112,22 @@ test("getElementById, getElementsByTagName, querySelector", function (assert) {
     assert.equal(document.getElementById(221),  el221)
     assert.equal(document.getElementById(222),  el222)
     
-	assert.equal(document.getElementsByTagName("div").length,  8)
-	assert.equal(document.getElementsByTagName("span").length,  1)
-	
-	assert.equal(document.querySelector("span"),      el221)
-	assert.equal(document.querySelector("#22"),       el22)
-	assert.equal(document.querySelector("div#22"),    el22)
-	assert.equal(document.querySelector("span#22"),   null)
+    assert.equal(document.getElementsByTagName("div").length,  8)
+    assert.equal(document.getElementsByTagName("span").length,  1)
+    
+    assert.equal(document.querySelector("span"),      el221)
+    assert.equal(document.querySelector("#22"),       el22)
+    assert.equal(document.querySelector("div#22"),    el22)
+    assert.equal(document.querySelector("span#22"),   null)
 
-	assert.equal(document.querySelector(".findme"),         el21)
-	assert.equal(document.querySelector(".not_found"),      null)
-	assert.equal(document.querySelector("div.findme"),      el21)
-	assert.equal(document.querySelector("div.not_found"),   null)
-	assert.equal(document.querySelector("span.findme"),     null)
-	assert.equal(document.querySelector("span.not_found"),  null)
-	assert.equal(document.querySelector("#21.findme"),      el21)
-	assert.equal(document.querySelector("div#21.findme"),   el21)
+    assert.equal(document.querySelector(".findme"),         el21)
+    assert.equal(document.querySelector(".not_found"),      null)
+    assert.equal(document.querySelector("div.findme"),      el21)
+    assert.equal(document.querySelector("div.not_found"),   null)
+    assert.equal(document.querySelector("span.findme"),     null)
+    assert.equal(document.querySelector("span.not_found"),  null)
+    assert.equal(document.querySelector("#21.findme"),      el21)
+    assert.equal(document.querySelector("div#21.findme"),   el21)
 
     assert.end()
 })
