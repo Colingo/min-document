@@ -27,7 +27,7 @@ function extend(obj, _super, extras) {
 */
 function Node(){}
 
-extend(Node, Object, {
+Node.prototype = {
     nodeName:        null,
     parentNode:      null,
     childNodes:      null,
@@ -38,31 +38,16 @@ extend(Node, Object, {
     appendChild: function(el) {
         return this.insertBefore(el)
     },
-    insertBefore: function(el, refChild) {
+    insertBefore: function(el, ref) {
         var t = this
         , childs = t.childNodes
-        , pos = childs.length
 
-        // If el is a DocumentFragment object, all of its children are inserted, in the same order, before refChild.
-        if (el.nodeType == 11) {
-            el.childNodes.forEach(function(el) {
-                t.insertBefore(el, refChild)
-            })
-        } else {
+        if (el.parentNode) el.parentNode.removeChild(el)
+        el.parentNode = t
 
-            // If the el is already in the tree, it is first removed.
-            if (el.parentNode) el.parentNode.removeChild(el)
-
-            el.parentNode = t
-            // If ref is null, insert el at the end of the list of children.
-            if (refChild) {
-                pos = childs.indexOf(refChild)
-            }
-            
-            childs.splice(pos, 0, el)
-            t._updateLinks(el)
-            refChild && t._updateLinks(refChild.nextSibling, refChild.previousSibling, refChild)
-        }
+        // If ref is null, insert el at the end of the list of children.
+        childs.splice(ref ? childs.indexOf(ref) : childs.length, 0, el)
+        t._updateLinks(el, ref, ref && ref.previousSibling)
         return el
     },
     removeChild: function(el) {
@@ -77,7 +62,7 @@ extend(Node, Object, {
     },
     replaceChild: function(el, ref) {
         this.insertBefore(el, ref)
-        this.removeChild(ref)
+        return this.removeChild(ref)
     },
     cloneNode: function(deep) {
         //TODO
@@ -114,7 +99,7 @@ extend(Node, Object, {
 
         return result
     }
-})
+}
 
 
 function DocumentFragment() {
@@ -147,9 +132,8 @@ extend(HTMLElement, Node, {
     * Void elements:
     * http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
     */
-    _voidElements: { AREA:1, BASE:1, BR:1, COL:1, EMBED:1, HR:1, IMG:1,
-                    INPUT:1, KEYGEN:1, LINK:1, MENUITEM:1, META:1, PARAM:1,
-                    SOURCE:1, TRACK:1, WBR:1 },
+    _voidElements: { AREA:1, BASE:1, BR:1, COL:1, EMBED:1, HR:1, IMG:1, INPUT:1,
+        KEYGEN:1, LINK:1, MENUITEM:1, META:1, PARAM:1, SOURCE:1, TRACK:1, WBR:1 },
     hasAttribute: function(name) {
         //HACK: we should figure out a better way
         if (name == "dataset") return false
@@ -165,18 +149,11 @@ extend(HTMLElement, Node, {
         delete this.name
     },
     getElementById: function(id) {
-        var t = this
-        if (""+t.id === ""+id) return t
-
-        var arr = t.childNodes
-        , result = null
-
-        if (arr) {
-            for (var i = 0, len = arr.length; !result && i < len; i++) {
-                result = arr[i].nodeType == 1 ? arr[i].getElementById(id) : null
-            }
+        if (this.id == id) return this
+        for (var el, found, i = 0; !found && (el = this.childNodes[i++]);) {
+            if (el.nodeType == 1) found = el.getElementById(id)
         }
-        return result
+        return found || null
     },
     getElementsByTagName: function(tag) {
         var el, els = [], next = this.firstChild
