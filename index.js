@@ -28,6 +28,7 @@ function extend(obj, _super, extras) {
 function Node(){}
 
 extend(Node, Object, {
+    nodeName:        null,
     parentNode:      null,
     childNodes:      null,
     firstChild:      null,
@@ -35,41 +36,74 @@ extend(Node, Object, {
     previousSibling: null,
     nextSibling:     null,
     appendChild: function(el) {
+        return this.insertBefore(el)
+    },
+    insertBefore: function(el, refChild) {
         var t = this
         , childs = t.childNodes
-        , len = childs.length
+        , pos = childs.length
 
-        el.parentNode = t
-        el.previousSibling = childs[ len - 1 ] || null
-        if (el.previousSibling) el.previousSibling.nextSibling = el
+        // If el is a DocumentFragment object, all of its children are inserted, in the same order, before refChild.
+        if (el.nodeType == 11) {
+            el.childNodes.forEach(function(el) {
+                t.insertBefore(el, refChild)
+            })
+        } else {
 
-        childs.push(el)
+            // If the el is already in the tree, it is first removed.
+            if (el.parentNode) el.parentNode.removeChild(el)
 
-        t.firstChild = childs[0] || null
-        t.lastChild = childs[ len - 1 ] || null
-    },
-    insertBefore: function() {
-        //TODO
-    },
-    replaceChild: function(el, needle) {
-        var index = this.childNodes.indexOf(needle)
-
-        this.childNodes[index] = el
-        el.parentNode = this
-        //TODO: update firstChild, ...
+            el.parentNode = t
+            // If ref is null, insert el at the end of the list of children.
+            if (refChild) {
+                pos = childs.indexOf(refChild)
+            }
+            
+            childs.splice(pos, 0, el)
+            t._updateLinks(el)
+            refChild && t._updateLinks(refChild.nextSibling, refChild.previousSibling, refChild)
+        }
+        return el
     },
     removeChild: function(el) {
-        var index = this.childNodes.indexOf(el)
-        this.childNodes.splice(index, 1)
+        var t = this
+        , index = t.childNodes.indexOf(el)
+        if (index == -1) throw new Error("NOT_FOUND_ERR")
+
+        t.childNodes.splice(index, 1)
         el.parentNode = null
-        el.previousSibling = el.nextSibling || null
-        //TODO: update firstChild, ...
+        t._updateLinks(el.previousSibling, el.nextSibling, el)
+        return el
+    },
+    replaceChild: function(el, ref) {
+        this.insertBefore(el, ref)
+        this.removeChild(ref)
     },
     cloneNode: function(deep) {
         //TODO
     },
     hasChildNodes: function() {
         return this.childNodes && this.childNodes.length > 0
+    },
+    _updateLinks: function() {
+        var el, index
+        , t = this
+        , childs = t.childNodes
+        , len = arguments.length
+
+        t.firstChild = childs[0] || null
+        t.lastChild  = childs[ childs.length - 1 ] || null
+
+        if (len) while (len--) {
+            el = arguments[len]
+            if (!el) continue
+            childs = el.parentNode && el.parentNode.childNodes
+            index = childs && childs.indexOf(el) || 0
+            el.nextSibling = childs && childs[ index + 1 ] || null
+            if (el.nextSibling) el.nextSibling.previousSibling = el
+            el.previousSibling = index > 0 && childs[ index - 1 ] || null
+            if (el.previousSibling) el.previousSibling.nextSibling = el
+        }
     },
     toString: function() {
         var result = this.textContent || ""
@@ -105,12 +139,20 @@ var el_re = /([.#:[])([-\w]+)(?:=([-\w]+)])?/g
 
 extend(HTMLElement, Node, {
     nodeType: 1,
-    nodeName: null,
+    tagName: null,
+    style: null,
     className: "",
     textContent: "",
+    /*
+    * Void elements:
+    * http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
+    */
+    _voidElements: { AREA:1, BASE:1, BR:1, COL:1, EMBED:1, HR:1, IMG:1,
+                    INPUT:1, KEYGEN:1, LINK:1, MENUITEM:1, META:1, PARAM:1,
+                    SOURCE:1, TRACK:1, WBR:1 },
     hasAttribute: function(name) {
         //HACK: we should figure out a better way
-        if (name == "dataset" || name == "style" || name == "tagName") return false
+        if (name == "dataset") return false
         return this.hasOwnProperty(name) && !(name in HTMLElement.prototype)
     },
     getAttribute: function(name) {
@@ -165,15 +207,15 @@ extend(HTMLElement, Node, {
         return null
     },
     toString: function() {
-        var result = "<" + this.nodeName + properties(this) + datasetify(this)
+        var t = this, result = "<" + t.tagName + properties(t) + datasetify(t)
 
-        if (this.nodeName == "IMG" || this.nodeName == "BR") {
+        if (t._voidElements[t.tagName]) {
             return result + "/>"
         }
 
         return result + ">" +
-            Node.prototype.toString.call(this) +
-            "</" + this.nodeName + ">"
+            Node.prototype.toString.call(t) +
+            "</" + t.tagName + ">"
     }
 })
 
