@@ -61,7 +61,6 @@ test("getElementById, getElementsByTagName, querySelector", function (assert) {
 
     var el1   = append_el(1, document.body)
     var el2   = append_el(2, document.body)
-    var el3   = append_el(3, document.body)
 
     var el11  = append_el(11,  el1)
     var el12  = append_el(12,  el1)
@@ -69,6 +68,7 @@ test("getElementById, getElementsByTagName, querySelector", function (assert) {
     var el22  = append_el(22,  el2)
     var el221 = append_el(221, el22, "span")
     var el222 = append_el(222, el22)
+    var el3   = append_el(3, document.body)
 
 	el21.className = "findme"
 	el222.setAttribute("type", "text/css")
