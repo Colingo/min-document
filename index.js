@@ -115,7 +115,6 @@ extend(DocumentFragment, Node, {
 function HTMLElement(tag) {
     var t = this
     t.nodeName = t.tagName = tag.toUpperCase()
-    t.dataset = {}
     t.childNodes = []
     t.style = {}
 }
@@ -135,8 +134,6 @@ extend(HTMLElement, Node, {
     _voidElements: { AREA:1, BASE:1, BR:1, COL:1, EMBED:1, HR:1, IMG:1, INPUT:1,
         KEYGEN:1, LINK:1, MENUITEM:1, META:1, PARAM:1, SOURCE:1, TRACK:1, WBR:1 },
     hasAttribute: function(name) {
-        //HACK: we should figure out a better way
-        if (name == "dataset") return false
         return this.hasOwnProperty(name) && !(name in HTMLElement.prototype)
     },
     getAttribute: function(name) {
@@ -183,8 +180,28 @@ extend(HTMLElement, Node, {
         for (; el = els[i++]; ) if (fn(el)) return el
         return null
     },
+    _getAttributesString: function() {
+        var key
+        , t = this
+        , attrs = []
+
+        for (key in t) if (t.hasAttribute(key)) {
+            attrs.push(key + '="' + t[key] + '"')
+        }
+        
+        if (t.className) {
+            attrs.push('class="' + t.className + '"')
+        }
+
+        var style = Object.keys(t.style).reduce(function (str, key) {
+            return str + key + ":" + t.styles[key] + ";"
+        }, "")
+        if (style) attrs.push('style="' + style + '"')
+
+        return attrs.length ? " " + attrs.join(" ") : ""
+    },
     toString: function() {
-        var t = this, result = "<" + t.tagName + properties(t) + datasetify(t)
+        var t = this, result = "<" + t.tagName + t._getAttributesString()
 
         if (t._voidElements[t.tagName]) {
             return result + "/>"
@@ -235,57 +252,4 @@ extend(Document, Node, {
 
 var document = module.exports = new Document
 
-
-
-
-function stylify(styles) {
-    var attr = ""
-    Object.keys(styles).forEach(function (key) {
-        var value = styles[key]
-        attr += key + ":" + value + ";"
-    })
-    return attr
-}
-
-function datasetify(el) {
-    var ds = el.dataset
-    var props = []
-
-    for (var key in ds) {
-        props.push({ name: "data-" + key, value: ds[key] })
-    }
-
-    return props.length ? stringify(props) : ""
-}
-
-function stringify(list) {
-    var attributes = []
-    list.forEach(function (tuple) {
-        var name = tuple.name
-        var value = tuple.value
-
-        if (name === "style") {
-            value = stylify(value)
-        }
-
-        attributes.push(name + "=" + "\"" + value + "\"")
-    })
-
-    return attributes.length ? " " + attributes.join(" ") : ""
-}
-
-function properties(el) {
-    var props = []
-    for (var key in el) {
-        if (el.hasAttribute(key)) {
-            props.push({ name: key, value: el[key] })
-        }
-    }
-
-    if (el.className) {
-        props.push({ name: "class", value: el.className })
-    }
-
-    return props.length ? stringify(props) : ""
-}
 
