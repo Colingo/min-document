@@ -1,14 +1,12 @@
 /*
-* null
-* |- Object
-*    |- Node
-*       |- DocumentFragment
-*       |- Element             // skip
-*       |  |- HTMLElement
-*       |     |- HTML*Element  // skip
-*       |- CharacterData       // skip
-*       |  |- Text
-*
+* Object
+* |- Node
+*    |- DocumentFragment
+*    |- Element             // skip
+*    |  |- HTMLElement
+*    |     |- HTML*Element  // skip
+*    |- CharacterData       // skip
+*    |  |- Text
 */
 
 
@@ -28,6 +26,7 @@ function extend(obj, _super, extras) {
 function Node(){}
 
 Node.prototype = {
+    textContent:     "",
     nodeName:        null,
     parentNode:      null,
     childNodes:      null,
@@ -126,7 +125,6 @@ extend(HTMLElement, Node, {
     tagName: null,
     style: null,
     className: "",
-    textContent: "",
     /*
     * Void elements:
     * http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
@@ -218,7 +216,7 @@ function Text(value) {
     this.textContent = value
 }
 
-extend(DocumentFragment, Node, {
+extend(Text, Node, {
     nodeType: 3,
     nodeName: "#text"
 })

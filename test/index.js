@@ -10,6 +10,27 @@ test("document is a Document", function (assert) {
     assert.end()
 })
 
+test("can create nodes", function (assert) {
+    var el;
+
+    el = document.createElement("h1")
+    assert.equal(el.nodeType, 1)
+    assert.equal(el.nodeName, "H1")
+    assert.equal(el.textContent, "")
+
+    el = document.createDocumentFragment()
+    assert.equal(el.nodeType, 11)
+    assert.equal(el.nodeName, "#document-fragment")
+    assert.equal(el.textContent, "")
+
+    el = document.createTextNode("hello")
+    assert.equal(el.nodeType, 3)
+    assert.equal(el.nodeName, "#text")
+    assert.equal(el.textContent, "hello")
+
+    assert.end()
+})
+
 test("can do stuff", function (assert) {
     var div = document.createElement("div")
     div.className = "foo bar"
