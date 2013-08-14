@@ -31,6 +31,44 @@ test("can create nodes", function (assert) {
     assert.end()
 })
 
+test("can clone HTMLElements", function (assert) {
+    var el, clone;
+
+    el = document.createElement("h1")
+    el.id = 1
+    el.style.top = "5px"
+    clone = el.cloneNode()
+
+    assert.notEqual(el, clone)
+    assert.notEqual(el.style, clone.style)
+    assert.notEqual(el.childNodes, clone.childNodes)
+
+    assert.equal(el.nodeName, "H1")
+    assert.equal(el.id, 1)
+    assert.equal(el.style.top, "5px")
+    assert.equal(clone.nodeName, "H1")
+    assert.equal(clone.id, 1)
+    assert.equal(clone.style.top, "5px")
+
+    clone.id = 2
+    assert.equal(el.id, 1)
+    assert.equal(clone.id, 2)
+
+    assert.end()
+})
+
+test("can clone Text", function (assert) {
+    var el, clone;
+
+    el = document.createTextNode("hello world")
+    clone = el.cloneNode()
+
+    assert.notEqual(el, clone)
+    assert.equal(""+el, ""+clone)
+
+    assert.end()
+})
+
 test("can do stuff", function (assert) {
     var div = document.createElement("div")
     div.className = "foo bar"
@@ -68,13 +106,13 @@ function testNode(assert, mask, node) {
     assert.equal(""+node, mask.replace("%s", "<H1></H1>"))
 }
 
-test("Element", function (assert) {
+test("HTMLElement", function (assert) {
     testNode(assert, "<BODY>%s</BODY>", document.body)
 
     assert.end()
 })
 
-test("Element.attributes", function (assert) {
+test("HTMLElement.attributes", function (assert) {
     var h1 = document.createElement("h1")
     h1.id = 123
     assert.equal(""+h1, '<H1 id="123"></H1>')
