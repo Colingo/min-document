@@ -118,8 +118,9 @@ test("getElementById, getElementsByTagName, querySelector", function (assert) {
     var el222 = append_el(222, el22)
     var el3   = append_el(3, document.body)
 
-    el21.className = "findme"
+    el21.className = "findme first"
     el222.setAttribute("type", "text/css")
+    el221.className = "findme"
 
     assert.equal(document.body.appendChild(el3), el3)
 
@@ -145,11 +146,14 @@ test("getElementById, getElementsByTagName, querySelector", function (assert) {
     assert.equal(document.querySelector(".not_found"),      null)
     assert.equal(document.querySelector("div.findme"),      el21)
     assert.equal(document.querySelector("div.not_found"),   null)
-    assert.equal(document.querySelector("span.findme"),     null)
+    assert.equal(document.querySelector("span.first"),      null)
     assert.equal(document.querySelector("span.not_found"),  null)
     assert.equal(document.querySelector("#21.findme"),      el21)
     assert.equal(document.querySelector("div#21.findme"),   el21)
 
+    assert.equal(document.querySelectorAll("div").length,         8)
+    assert.equal(document.querySelectorAll(".findme").length,     2)
+    assert.equal(document.querySelectorAll("span.findme").length, 1)
     assert.end()
 })
 
