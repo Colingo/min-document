@@ -161,8 +161,15 @@ extend(HTMLElement, Node, {
         return els
     },
     querySelector: function(sel) {
+        return this._find(sel, 1)
+    },
+    querySelectorAll: function(sel) {
+        return this._find(sel)
+    },
+    _find: function(sel, first) {
         var el
         , i = 0
+        , out = []
         , rules = ["_"]
         , tag = sel.replace(el_re, function(_, o, s, v) {
                 rules.push(
@@ -175,8 +182,11 @@ extend(HTMLElement, Node, {
         , els = this.getElementsByTagName(tag)
         , fn = Function("_", "return " + rules.join("&&"))
 
-        for (; el = els[i++]; ) if (fn(el)) return el
-        return null
+        for (; el = els[i++]; ) if (fn(el)) {
+            if (first) return el
+            out.push(el)
+        }
+        return first ? null : out
     },
     _getAttributesString: function() {
         var key
@@ -245,6 +255,9 @@ extend(Document, Node, {
     },
     querySelector: function(sel) {
         return this.body.querySelector(sel)
+    },
+    querySelectorAll: function(sel) {
+        return this.body.querySelectorAll(sel)
     }
 })
 
