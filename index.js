@@ -16,6 +16,7 @@ function extend(obj, _super, extras) {
     for (var key in extras) {
         obj.prototype[key] = extras[key]
     }
+    obj.prototype.constructor = obj
 }
 
 
@@ -64,7 +65,21 @@ Node.prototype = {
         return this.removeChild(ref)
     },
     cloneNode: function(deep) {
-        //TODO
+        var key
+        , t = this
+        , node = new t.constructor(t.tagName || t.textContent)
+
+        if (t.hasAttribute) {
+            for (key in t) if (t.hasAttribute(key)) node[key] = t[key]
+            for (key in t.style) node.style[key] = t.style[key]
+        }
+
+        if (deep && t.childNodes) {
+            node.childNodes = t.childNodes.map(function(child){
+                return child.clone(deep)
+            })
+        }
+        return node
     },
     hasChildNodes: function() {
         return this.childNodes && this.childNodes.length > 0
