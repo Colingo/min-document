@@ -277,5 +277,6 @@ extend(Document, Node, {
 })
 
 var document = module.exports = new Document
+document.HTMLElement = HTMLElement
 
 
