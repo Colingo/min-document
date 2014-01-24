@@ -16,9 +16,7 @@
     "url": "https://github.com/Colingo/min-document/issues",
     "email": "raynos2@gmail.com"
   },
-  "dependencies": {
-    "tape": "~1.0.2"
-  },
+  "dependencies": {},
   "devDependencies": {
     "tape": "~1.0.2"
   },
